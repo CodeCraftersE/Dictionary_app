@@ -36,7 +36,7 @@ btn.addEventListener("click", async () => {
         let wordDefinition = `
             <div class="word">
                 <h3>${inpWord}</h3>
-                <button onclick="playSound()">
+                <button onclick="playWordSound()">
                     <i class="fas fa-volume-up"></i>
                 </button>
             </div>
@@ -46,7 +46,10 @@ btn.addEventListener("click", async () => {
             </div>
             <p class="word-meaning">${definition}</p>
             <p class="word-example">${example}</p>
-            <p class="word-synonyms"><strong>Synonyms:</strong> ${synonymsText}</p>`;
+            <p class="word-synonyms"><strong>Synonyms:</strong> ${synonymsText}</p>
+            <button class="speak-btn" onclick="speakMeaning('${definition}', '${synonymsText}')">
+                <i class="fas fa-headphones"></i> Listen
+            </button>`;
 
         result.innerHTML = wordDefinition;
 
@@ -62,8 +65,21 @@ btn.addEventListener("click", async () => {
     }
 });
 
-function playSound() {
-    sound.play();
+// Play word pronunciation from API
+function playWordSound() {
+    if (sound.getAttribute("src")) {
+        sound.play();
+    }
+}
+
+// Speak meaning and synonyms using text-to-speech
+function speakMeaning(meaning, synonyms) {
+    let speech = new SpeechSynthesisUtterance();
+    speech.text = `The meaning is: ${meaning}. Synonyms include: ${synonyms}.`;
+    speech.lang = "en-US";
+    speech.rate = 0.9; // Adjust speed
+    speech.pitch = 1; // Adjust pitch
+    window.speechSynthesis.speak(speech);
 }
 
 // Function to update IST Time using correct time zone conversion
@@ -94,9 +110,18 @@ searchInput.addEventListener("input", () => {
     }
 });
 
-// Press "P" to play pronunciation
+// Keyboard Shortcuts
 document.addEventListener("keypress", (event) => {
     if (event.key.toLowerCase() === "p") {
-        playSound();
+        playWordSound(); // Press "P" to pronounce the word
+    } else if (event.key.toLowerCase() === "h") {
+        let meaningElement = document.querySelector(".word-meaning");
+        let synonymsElement = document.querySelector(".word-synonyms");
+        
+        if (meaningElement && synonymsElement) {
+            let meaning = meaningElement.textContent;
+            let synonyms = synonymsElement.textContent.replace("Synonyms: ", "");
+            speakMeaning(meaning, synonyms); // Press "H" to hear the meaning
+        }
     }
 });
